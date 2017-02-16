@@ -1,11 +1,8 @@
 #Author Kevin Turner CS21B
 #Test stuff for class®
-#import sys
 
-outOfStock = {}
-instockWarehouse = {}
-shipAvaiByWareHouse = []
-shipWarehouseOption = []
+#shipAvaiByWareHouse = []
+#shipWarehouseOption = []
 wareHouseShipCostFactor = {'whNorth':1.8,'whSouth':2.1,'whEast':2.5,'whWest':1}
 
 book = {'1491946008':
@@ -53,19 +50,24 @@ invoice4 = {'1491946008': 2, '615291805': 2, '1785289721': 1,
 invoice5 = {'1785289721': 3, '615291805': 1, '1491946008': 5,
             '976982242': 6, '321967607': 4} #not enothgh inventory from any one warehouse
 
-
-def totalWeight(invoice):
-    shipWeight = 0.0
-    for asin in invoice.keys():
-        invoiceKey = str(asin) #convert key to string for if statement
-        if invoiceKey in book.keys():
-            shipWeight = shipWeight + book[invoiceKey]['weight']
-            #print(book[invoiceKey]['weight'], ' weight: %5.2f%s' % (shipWeight, ' lb'))
+def totalWeight(asin, itemWeight = []):
+    itemWeight.append(book[asin]['weight'])
+    shipWeight = sum(itemWeight)
+    print('%5.2f%s' % (shipWeight, ' lb'))
     return '%5.2f' % shipWeight
+
+def findSize(asin, L = [], W = [], H = []):
+    #L = []; W = []; H = []
+    L.append(book[asin]['length'])
+    W.append(book[asin]['width'])
+    H.append(book[asin]['height'])
+    shipSize = max(L) * max(W) * sum(H)
+    print('shipSize ', '%5.2f' % shipSize)
+    return '%5.2f' % shipSize
 
 #creates two list of warehouses, 1 with full order and 1 with partial order,
 # uses instock list that is generated from getShipAvail()
-def stockAvail(invoice):
+def shipAvaiByWareHouse(invoice,shipAvaiByWareHouse = [], shipWarehouseOption = []):
     for k, v in instockWarehouse.items():
         #print('instockWarehouse loop ', k, len(list(filter(None, v))))
         #print('value ', len(list(filter(None, v))))
@@ -77,27 +79,19 @@ def stockAvail(invoice):
             shipWarehouseOption.append(stockKey)
             #print('Option ', shipWarehouseOption)
 
-def shipOptions():
-
+def shipOptions(invoice, shipAvaiByWareHouse = [], shipWarehouseOption = []):
     if shipAvaiByWareHouse != []:
-        empty = 0 #placeholder to keep if statement
-        #print('ship options for full order: ', ' '.join(shipAvaiByWareHouse))
-        #print(v, ' ', k)
-        #for key in shipAvaiByWareHouse:
-            #print('Avail Warehouses: ', shipAvaiByWareHouse)
-
+        return None
     elif shipAvaiByWareHouse == [] and shipWarehouseOption == [] and outOfStock != None: # nothing in stock at any warehouse
-        print('Backordered, out of stock')
+        return print('Backordered, out of stock')
     elif shipAvaiByWareHouse == [] and shipWarehouseOption != []:#partial order avail
         #print('Availble by multiple shipments only:',' '.join(shipWarehouseOption))
-        if outOfStock != None:
-            #print('Backordered, out of stock:',' '.join(outOfStock))
-            empty2 = 0 #placeholder to keep if statement
+        return print('split order, cannot be shipped from one location')
 
-
-def getShipAvail(invoice):
+def getShipAvail(invoice, outOfStock = {}, **instockWarehouse):
     for asin in invoice.keys():
-        #print('top ', asin)
+        totalWeight(asin)
+        findSize(asin)
         invoiceKey = str(asin) #convert key to string for if statement
         if invoiceKey in book.keys():
             if invoice[asin] <= book[invoiceKey]['whNorth']: #if wh has enough to fulfill book order
@@ -135,29 +129,15 @@ def getShipAvail(invoice):
                 #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
         else:
             print('book not found')
+
     return instockWarehouse, outOfStock
 
 
 
-
 (instockWarehouse, outOfStock) = getShipAvail(invoice1)
-stockAvail(invoice1)
-#print(instockWarehouse)
-#print('total weight', totalWeight(invoice1), 'lb')
 
+print(shipAvaiByWareHouse(invoice1))
 
-def findSize(invoice):
-    L = []; W = []; H = []
-    for asin in invoice.keys():
-        invoiceKey = str(asin) #convert key to string for if statement
-        if invoiceKey in book.keys():
-            L.append(book[invoiceKey]['length'])
-            W.append(book[invoiceKey]['width'])
-            H.append(book[invoiceKey]['width'])
-    shipSize = max(L) * max(W) * sum(H)
-    return '%5.2f' % shipSize
-
-#print('total size: ', findSize(invoice1), 'cubic inches')
 
 #dont need a function here and warehouse is hardwired
 def ShipFactor(total_weight, shipSize, wareHouse=wareHouseShipCostFactor['whWest']):
@@ -172,9 +152,22 @@ test1 = {'whNorth':224.04, 'whSouth':130.3, 'whEast':269.4, 'whWest':242.1}
 lowestShipCosttest = min(test1, key = lambda x: test1[x])
 #print('lowestShipCosttest', lowestShipCosttest)
 
-print('warehouses: ', ','.join(shipAvaiByWareHouse))
 
 #test run
 if __name__ == "__main__":
     """
+    invoice1 = {'1491946008': 4, '1449357016': 3, '1785289721': 1,
+            '615291805': 2, '976982242': 1}
+
+    invoice2 = {'1785289721': 2, '1449357016': 1, '1491946008': 1,
+                '321967607': 3,'976982242': 1}
+
+    invoice3 = {'1785289721': 1, '615291805': 1, '1491946008': 1,
+                '6197258048': 3, '321967607': 2} #zero available for 6197258048
+
+    invoice4 = {'1491946008': 2, '615291805': 2, '1785289721': 1,
+                '321967607': 1, '976982242': 1}
+
+    invoice5 = {'1785289721': 3, '615291805': 1, '1491946008': 5,
+                '976982242': 6, '321967607': 4} #not enothgh inventory from any one warehouse
     """

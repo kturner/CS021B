@@ -65,14 +65,14 @@ def totalWeight(invoice):
 
 #creates two list of warehouses, 1 with full order and 1 with partial order,
 # uses instock list that is generated from getShipAvail()
-def StockAvail(invoice):
+def stockAvail(invoice):
     for k, v in instockWarehouse.items():
-        print('instockWarehouse loop ', k, len(list(filter(None, v))))
+        #print('instockWarehouse loop ', k, len(list(filter(None, v))))
         #print('value ', len(list(filter(None, v))))
         stockKey = k
         if (len(list(filter(None, v)))) == 5: #adds to shipAvaiByWareHouse if full order avail from warehouse
             shipAvaiByWareHouse.append(stockKey)
-            print('warehouse: ', shipAvaiByWareHouse)
+            #print('warehouse: ', shipAvaiByWareHouse)
         if (len(list(filter(None, v))) < 5 and len(list(filter(None, v)))) > 0: #adds to shipWarehouseOption if partial order at warehouse
             shipWarehouseOption.append(stockKey)
             #print('Option ', shipWarehouseOption)
@@ -133,16 +133,16 @@ def getShipAvail(invoice):
                 outOfStock.setdefault(invoiceKey, [])
                 outOfStock[invoiceKey].append('whWest')
                 #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
-    else:
-        print('book not found')
-        return instockWarehouse, outOfStock
+        else:
+            print('book not found')
+    return instockWarehouse, outOfStock
 
 
 
 
 (instockWarehouse, outOfStock) = getShipAvail(invoice1)
-inStock(invoice1)
-print(instockWarehouse)
+stockAvail(invoice1)
+#print(instockWarehouse)
 #print('total weight', totalWeight(invoice1), 'lb')
 
 

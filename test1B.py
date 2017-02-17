@@ -1,9 +1,10 @@
 #Author Kevin Turner CS21B
 #Test stuff for class®
-
-#shipAvaiByWareHouse = []
-#shipWarehouseOption = []
-wareHouseShipCostFactor = {'whNorth':1.8,'whSouth':2.1,'whEast':2.5,'whWest':1}
+outOfStock = {}
+instockWarehouse = {}
+shipAvaiByWareHouse = []
+warehouseOptions = []
+wareHouseShipCostFactor = {'whNorth':1.8,'whSouth':2.1,'whEast':2.5,'whWest':1.0}
 
 book = {'1491946008':
             {'title':'Fluent Python', 'price':39.99,
@@ -53,8 +54,8 @@ invoice5 = {'1785289721': 3, '615291805': 1, '1491946008': 5,
 def totalWeight(asin, itemWeight = []):
     itemWeight.append(book[asin]['weight'])
     shipWeight = sum(itemWeight)
-    print('%5.2f%s' % (shipWeight, ' lb'))
-    return '%5.2f' % shipWeight
+    #print('%5.2f%s' % (shipWeight, ' lb'))
+    return float('%5.2f' % shipWeight)
 
 def findSize(asin, L = [], W = [], H = []):
     #L = []; W = []; H = []
@@ -62,36 +63,24 @@ def findSize(asin, L = [], W = [], H = []):
     W.append(book[asin]['width'])
     H.append(book[asin]['height'])
     shipSize = max(L) * max(W) * sum(H)
-    print('shipSize ', '%5.2f' % shipSize)
-    return '%5.2f' % shipSize
+    #print('shipSize ', '%5.2f' % shipSize)
+    return float('%5.2f' % shipSize)
 
-#creates two list of warehouses, 1 with full order and 1 with partial order,
-# uses instock list that is generated from getShipAvail()
-def shipAvaiByWareHouse(invoice,shipAvaiByWareHouse = [], shipWarehouseOption = []):
-    for k, v in instockWarehouse.items():
-        #print('instockWarehouse loop ', k, len(list(filter(None, v))))
-        #print('value ', len(list(filter(None, v))))
-        stockKey = k
-        if (len(list(filter(None, v)))) == 5: #adds to shipAvaiByWareHouse if full order avail from warehouse
-            shipAvaiByWareHouse.append(stockKey)
-            #print('warehouse: ', shipAvaiByWareHouse)
-        if (len(list(filter(None, v))) < 5 and len(list(filter(None, v)))) > 0: #adds to shipWarehouseOption if partial order at warehouse
-            shipWarehouseOption.append(stockKey)
-            #print('Option ', shipWarehouseOption)
-
-def shipOptions(invoice, shipAvaiByWareHouse = [], shipWarehouseOption = []):
+def shipOptions(invoice):
     if shipAvaiByWareHouse != []:
         return None
-    elif shipAvaiByWareHouse == [] and shipWarehouseOption == [] and outOfStock != None: # nothing in stock at any warehouse
+    elif shipAvaiByWareHouse == [] and warehouseOptions == [] and outOfStock != None: # nothing in stock at any warehouse
         return print('Backordered, out of stock')
-    elif shipAvaiByWareHouse == [] and shipWarehouseOption != []:#partial order avail
+    elif shipAvaiByWareHouse == [] and warehouseOptions != []:#partial order avail
         #print('Availble by multiple shipments only:',' '.join(shipWarehouseOption))
         return print('split order, cannot be shipped from one location')
 
-def getShipAvail(invoice, outOfStock = {}, **instockWarehouse):
+def getShipAvail(invoice):
+    shipWeight = 0
+    shipSize = 0
     for asin in invoice.keys():
-        totalWeight(asin)
-        findSize(asin)
+        shipWeight = shipWeight + totalWeight(asin)
+        shipSize = shipSize + findSize(asin)
         invoiceKey = str(asin) #convert key to string for if statement
         if invoiceKey in book.keys():
             if invoice[asin] <= book[invoiceKey]['whNorth']: #if wh has enough to fulfill book order
@@ -129,28 +118,67 @@ def getShipAvail(invoice, outOfStock = {}, **instockWarehouse):
                 #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
         else:
             print('book not found')
-
-    return instockWarehouse, outOfStock
-
-
-
-(instockWarehouse, outOfStock) = getShipAvail(invoice1)
-
-print(shipAvaiByWareHouse(invoice1))
+    return totalWeight(asin), findSize(asin)
+    #return instockWarehouse, outOfStock #Joe
 
 
-#dont need a function here and warehouse is hardwired
-def ShipFactor(total_weight, shipSize, wareHouse=wareHouseShipCostFactor['whWest']):
+#creates two list of warehouses, 1 with full order and 1 with partial order,
+# uses instock list that is generated from getShipAvail()
+def shipWarehouseOptions(invoice):
+    for k, v in instockWarehouse.items():
+        #print('instockWarehouse loop ', k, len(list(filter(None, v))))
+        #print('value ', len(list(filter(None, v))))
+        stockKey = k
+        if (len(list(filter(None, v)))) == 5: #adds to shipAvaiByWareHouse if full order avail from warehouse
+            shipAvaiByWareHouse.append(stockKey)
+            #print('warehouse: ', shipAvaiByWareHouse)
+        if (len(list(filter(None, v))) < 5 and len(list(filter(None, v)))) > 0: #adds to shipWarehouseOption if partial order at warehouse
+            warehouseOptions.append(stockKey)
+            #print('Option ', shipWarehouseOption)
+    print('warehouse all are avail from: ', shipAvaiByWareHouse)
+    return shipAvaiByWareHouse, warehouseOptions,
+
+#(instockWarehouse, outOfStock) = getShipAvail(invoice1)#joe
+getShipAvail(invoice1)
+
+#print(shipWarehouseOptions(invoice1))
+shipWarehouseOptions(invoice1)
+
+
+"""
+#warehouse is hardwired
+def ShipFactor(total_weight, shipSize, wareHouse=wareHouseShipCostFactor):
     #print(float(total_weight))
     shipRate = (0.7 * float(total_weight) + 0.3 * float(shipSize)**1.5) * wareHouse
     return shipRate
+"""
+def ShipFactor(wareHouseShipCostFactor, shipAvaiByWareHouse, invoice):
+    (shipWeight, shipSize) = getShipAvail(invoice)
+    whShipRates = {}
+    for wh in shipAvaiByWareHouse:
+        print('avail ',shipAvaiByWareHouse )
+        print('wh', wareHouseShipCostFactor[wh])
+        print('s ', getShipAvail(invoice)[0])
+        i=float(getShipAvail(invoice)[0])
+        j=float(getShipAvail(invoice)[1])
+        k=wareHouseShipCostFactor[wh]
+        shipRate = ((0.7 * float(getShipAvail(invoice)[0])) +
+                    ( 0.3 * (float(getShipAvail(invoice)[1]) ** 1.5))) * \
+                   wareHouseShipCostFactor[wh]
+        whShipRates.setdefault(wh, [])
+        whShipRates[wh].append('%8.2f' % shipRate)
+    return whShipRates
+
+ShipCostF = ShipFactor(wareHouseShipCostFactor, shipAvaiByWareHouse, invoice1)
+print('shipCostF', ShipCostF)
+print('scf ', ShipCostF.values())
 
 #print('shipfactor: ', ShipFactor(totalWeight(invoice1), findSize(invoice1), wareHouseShipCostFactor['whNorth']))
 
 #replace test1 with instockWarehouse loop for warehouse
 test1 = {'whNorth':224.04, 'whSouth':130.3, 'whEast':269.4, 'whWest':242.1}
-lowestShipCosttest = min(test1, key = lambda x: test1[x])
-#print('lowestShipCosttest', lowestShipCosttest)
+lowestShipCosttest = min(ShipCostF, key = lambda x: ShipCostF[x])
+print('lowestShipCosttest', lowestShipCosttest)
 
 
 #test run

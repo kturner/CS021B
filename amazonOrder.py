@@ -12,32 +12,33 @@ wareHouseShipCostFactor = {'whNorth':1.8,'whSouth':2.1,'whEast':2.5,'whWest':1}
 book = {'1491946008':
             {'title':'Fluent Python', 'price':39.99,
             'whNorth':4, 'whSouth':2, 'whEast':2, 'whWest':12, 'weight':2.8,
-            'length':7, 'width':1.5, 'height':9.2},
+            'length':7, 'width':9.2, 'height':1.5},
         '1449357016':
             {'title':'Python Pocket Reference',
              'price':10.25, 'whNorth':3, 'whSouth':3, 'whEast':0, 'whWest':5,
-             'weight':0.35, 'length':4.2, 'width':0.5, 'height':7},
+             'weight':0.35, 'length':4.2, 'width':7.0, 'height':0.5},
         '1785289721':
             {'title':'Mastering Python', 'price':39.99, #zero stock
-            'whNorth':2, 'whSouth':1, 'whEast':2, 'whWest':2, 'weight':2.2,
-            'length':7.5,  'width':1.1,  'height':9.2},
+            'whNorth':2, 'whSouth':3, 'whEast':2, 'whWest':2, 'weight':2.2,
+            'length':7.5,  'width':9.2,  'height':1.1},
         '615291805':
             {'title':'Design and Construction of Tube Guitar amplifiers',
              'price':23.18, 'whNorth':4, 'whSouth':2, 'whEast':3, 'whWest':7,
-             'weight':0.7, 'length':6.9, 'width':0.6, 'height':10},
+             'weight':0.7, 'length':6.9, 'width':10.0, 'height':0.6},
         '976982242':
             {'title':'Vacuum Tube Circuit Design: Guitar Amplifiers Power Amps',
              'price':49.95, 'whNorth':6, 'whSouth':3, 'whEast':0, 'whWest':5,
-             'weight':1.7, 'length':7.4, 'width':1.1, 'height':9.1},
+             'weight':1.7, 'length':7.4, 'width':9.1, 'height':1.1},
         '6197258048':
            {'title':'The Ultimate Solar Power Design:Less Theory More Practice',
              'price':15.97, 'whNorth':0, 'whSouth':0, 'whEast':0, 'whWest':0,
-             'weight':0.9, 'length':6,  'width':0.5,  'height':9.0},
+             'weight':0.9, 'length':6,  'width':9.0,  'height':0.5},
         '321967607':
             {'title':'Programming on Objective-C (6th Edition)', 'price':37.24,
-            'whNorth':3, 'whSouth':1, 'whEast':2, 'whWest':2, 'weight':1.8,
-            'length':7,  'width':1.4,  'height':9.0}
+            'whNorth':3, 'whSouth':1, 'whEast':4, 'whWest':2, 'weight':1.8,
+            'length':7,  'width':9.0,  'height':1.4}
         }
+
 
 invoice1 = {'1491946008': 4, '1449357016': 3, '1785289721': 1,
             '615291805': 2, '976982242': 1}

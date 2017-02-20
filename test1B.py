@@ -63,41 +63,40 @@ def getShipAvail(invoice):
         L.append(book[asin]['length'])
         W.append(book[asin]['width'])
         H.append(book[asin]['height'])
-        invoiceKey = str(asin) #convert key to string for if statement
-        if invoiceKey in book.keys():
-            if invoice[asin] <= book[invoiceKey]['whNorth']: #if wh has enough to fulfill book order
+        if str(asin) in book.keys():
+            if invoice[asin] <= book[str(asin)]['whNorth']: #if wh has enough to fulfill book order
                 instockWarehouse.setdefault('whNorth', [])
-                instockWarehouse['whNorth'].append(invoiceKey)
-                #print(book[invoiceKey]['title'], ': In Stock,',', '.join(instockWarehouse))#print book title and warehouse
+                instockWarehouse['whNorth'].append(str(asin))
+                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))#print book title and warehouse
                 #print('invoice ship: ', asin)
             else:
-                outOfStock.setdefault(invoiceKey, [])
-                outOfStock[invoiceKey].append('whNorth')
-                #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
-            if invoice[asin] <= book[invoiceKey]['whSouth']:
+                outOfStock.setdefault(str(asin), [])
+                outOfStock[str(asin)].append('whNorth')
+                #print(book[str(asin)]['title'], ': Out of Stock,', ', '.join(outOfStock[str(asin)]))
+            if invoice[asin] <= book[str(asin)]['whSouth']:
                 instockWarehouse.setdefault('whSouth', [])
-                instockWarehouse['whSouth'].append(invoiceKey)
-                #print(book[invoiceKey]['title'], ': In Stock,',', '.join(instockWarehouse))
+                instockWarehouse['whSouth'].append(str(asin))
+                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))
             else:
-                outOfStock.setdefault(invoiceKey, [])
-                outOfStock[invoiceKey].append('whSouth')
-                #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
-            if invoice[asin] <= book[invoiceKey]['whEast']:
+                outOfStock.setdefault(str(asin), [])
+                outOfStock[str(asin)].append('whSouth')
+                #print(book[str(asin)]['title'], ': Out of Stock,', ', '.join(outOfStock[str(asin)]))
+            if invoice[asin] <= book[str(asin)]['whEast']:
                 instockWarehouse.setdefault('whEast', [])
-                instockWarehouse['whEast'].append(invoiceKey)
-                #print(book[invoiceKey]['title'], ': In Stock,',', '.join(instockWarehouse))
+                instockWarehouse['whEast'].append(str(asin))
+                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))
             else:
-                outOfStock.setdefault(invoiceKey, [])
-                outOfStock[invoiceKey].append('whEast')
-                #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
-            if invoice.get(asin) <= book[invoiceKey]['whWest']:
+                outOfStock.setdefault(str(asin), [])
+                outOfStock[str(asin)].append('whEast')
+                #print(book[str(asin)]['title'], ': Out of Stock,', ', '.join(outOfStock[str(asin)]))
+            if invoice.get(asin) <= book[str(asin)]['whWest']:
                 instockWarehouse.setdefault('whWest', [])
-                instockWarehouse['whWest'].append(invoiceKey)
-                #print(book[invoiceKey]['title'], ': In Stock,', ', '.join(instockWarehouse))
+                instockWarehouse['whWest'].append(str(asin))
+                #print(book[str(asin)]['title'], ': In Stock,', ', '.join(instockWarehouse))
             else:
-                outOfStock.setdefault(invoiceKey, [])
-                outOfStock[invoiceKey].append('whWest')
-                #print(book[invoiceKey]['title'], ': Out of Stock,', ', '.join(outOfStock[invoiceKey]))
+                outOfStock.setdefault(str(asin), [])
+                outOfStock[str(asin)].append('whWest')
+                #print(book[str(asin)]['title'], ': Out of Stock,', ', '.join(outOfStock[str(asin)]))
         else:
             print('book not found')
 
@@ -110,11 +109,7 @@ def getShipAvail(invoice):
     shipSize = '%5.2f' % (max(L) * max(W) * sum(H))
     return shipAvaiByWareHouse, shipWeight, float(shipSize)
 
-shipByWareHouse, shipWeightTot, shipSizeTot = getShipAvail(invoice1)
-
-#shipByWareHouse, shipWeightTot, shipSizeTot = getShipAvail(invoice2)
-
-
+shipByWareHouse, shipWeightTot, shipSizeTot = getShipAvail(invoice4)
 
 #calculates shipfactor for each warehouse
 def ShipFactor(wareHouseShipCostFactor, shipByWareHouse, shipWeightTot,
@@ -128,12 +123,20 @@ def ShipFactor(wareHouseShipCostFactor, shipByWareHouse, shipWeightTot,
         lowestShipCosttest = min(whShipRates, key=lambda x: whShipRates[x])
     return whShipRates, lowestShipCosttest
 
+def printInvoiceDetails(invoice):
+    invoiceDetails = {}
+    for key, value in book.items():
+        if key in invoice:
+            invoiceDetails[key] = value
+    return invoiceDetails
+details = printInvoiceDetails(invoice4)
+print('Details: ', details)
+
 #save shipfactor as local var
+
+
 ShipCostF, lowestCostWarehouse = ShipFactor(wareHouseShipCostFactor,
                                     shipByWareHouse, shipWeightTot, shipSizeTot)
 
-print('ShipCostF', ShipCostF, 'lowestCostWarehouse', lowestCostWarehouse )
-
-#test run
-if __name__ == "__main__":
-    temp = None
+print('Warehouse with lowest shipping cost: ', lowestCostWarehouse )
+print('All warehouse options for shipping single source order: ', ShipCostF)

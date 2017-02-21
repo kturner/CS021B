@@ -4,31 +4,36 @@
 wareHouseShipCostFactor={'whNorth':1.8,'whSouth':2.1,'whEast':2.5,'whWest':1.0}
 
 book = {'1491946008':
-            {'title':'Fluent Python', 'price':39.99,
+            {'title':'Fluent Python', 'author': 'Luciano Ramalho','price':39.99,
             'whNorth':4, 'whSouth':2, 'whEast':2, 'whWest':12, 'weight':2.8,
             'length':7, 'width':9.2, 'height':1.5},
         '1449357016':
-            {'title':'Python Pocket Reference',
+            {'title':'Python Pocket Reference', 'author': 'Mark Lutz',
              'price':10.25, 'whNorth':3, 'whSouth':3, 'whEast':0, 'whWest':5,
              'weight':0.35, 'length':4.2, 'width':7.0, 'height':0.5},
         '1785289721':
-            {'title':'Mastering Python', 'price':39.99, #zero stock
+            {'title':'Mastering Python', 'author': 'Rick van Hattem',
+             'price':39.99, #zero stock
             'whNorth':2, 'whSouth':3, 'whEast':2, 'whWest':2, 'weight':2.2,
             'length':7.5,  'width':9.2,  'height':1.1},
         '615291805':
             {'title':'Design and Construction of Tube Guitar amplifiers',
+             'author': 'Robert C. Megantz and Ken Leyva',
              'price':23.18, 'whNorth':4, 'whSouth':2, 'whEast':3, 'whWest':7,
              'weight':0.7, 'length':6.9, 'width':10.0, 'height':0.6},
         '976982242':
             {'title':'Vacuum Tube Circuit Design: Guitar Amplifiers Power Amps',
-             'price':49.95, 'whNorth':6, 'whSouth':3, 'whEast':0, 'whWest':5,
+             'author': 'Richard Kuehnel', 'price':49.95, 'whNorth':6,
+             'whSouth':3, 'whEast':0, 'whWest':5,
              'weight':1.7, 'length':7.4, 'width':9.1, 'height':1.1},
         '6197258048':
            {'title':'The Ultimate Solar Power Design:Less Theory More Practice',
-             'price':15.97, 'whNorth':0, 'whSouth':0, 'whEast':0, 'whWest':0,
+             'author': ' Lacho Pop MSE and Dimi Avram MSE', 'price':15.97,
+            'whNorth':0, 'whSouth':0, 'whEast':0, 'whWest':0,
              'weight':0.9, 'length':6,  'width':9.0,  'height':0.5},
         '321967607':
-            {'title':'Programming on Objective-C (6th Edition)', 'price':37.24,
+            {'title':'Programming on Objective-C (6th Edition)',
+             'author': 'Stephen G. Kochan', 'price':37.24,
             'whNorth':3, 'whSouth':1, 'whEast':4, 'whWest':2, 'weight':1.8,
             'length':7,  'width':9.0,  'height':1.4}
         }
@@ -53,6 +58,14 @@ def totalWeight(asin, itemWeight = []):
     shipWeight = sum(itemWeight)
     return float('%5.2f' % shipWeight)
 
+def totalCost(invoice):
+    cost = []
+    for asin in invoice.keys():
+        tempCost = book[asin]['price']
+        tempQt = invoice[asin]
+        cost.append(tempCost * tempQt)
+    totalCost = sum(cost)
+    return totalCost
 
 def getShipAvail(invoice):
     instockWarehouse = {}; outOfStock = {}
@@ -67,8 +80,6 @@ def getShipAvail(invoice):
             if invoice[asin] <= book[str(asin)]['whNorth']: #if wh has enough to fulfill book order
                 instockWarehouse.setdefault('whNorth', [])
                 instockWarehouse['whNorth'].append(str(asin))
-                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))#print book title and warehouse
-                #print('invoice ship: ', asin)
             else:
                 outOfStock.setdefault(str(asin), [])
                 outOfStock[str(asin)].append('whNorth')
@@ -76,7 +87,6 @@ def getShipAvail(invoice):
             if invoice[asin] <= book[str(asin)]['whSouth']:
                 instockWarehouse.setdefault('whSouth', [])
                 instockWarehouse['whSouth'].append(str(asin))
-                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))
             else:
                 outOfStock.setdefault(str(asin), [])
                 outOfStock[str(asin)].append('whSouth')
@@ -84,7 +94,6 @@ def getShipAvail(invoice):
             if invoice[asin] <= book[str(asin)]['whEast']:
                 instockWarehouse.setdefault('whEast', [])
                 instockWarehouse['whEast'].append(str(asin))
-                #print(book[str(asin)]['title'], ': In Stock,',', '.join(instockWarehouse))
             else:
                 outOfStock.setdefault(str(asin), [])
                 outOfStock[str(asin)].append('whEast')
@@ -92,7 +101,6 @@ def getShipAvail(invoice):
             if invoice.get(asin) <= book[str(asin)]['whWest']:
                 instockWarehouse.setdefault('whWest', [])
                 instockWarehouse['whWest'].append(str(asin))
-                #print(book[str(asin)]['title'], ': In Stock,', ', '.join(instockWarehouse))
             else:
                 outOfStock.setdefault(str(asin), [])
                 outOfStock[str(asin)].append('whWest')
@@ -102,14 +110,13 @@ def getShipAvail(invoice):
 
     for k, v in instockWarehouse.items():
         stockKey = k
-        if (len(list(filter(None, v)))) == 5:  # adds to shipAvaiByWareHouse if full order avail from warehouse
+        if (len(list(filter(None, v)))) == len(invoice): # adds to shipAvaiByWareHouse if full order avail from warehouse
             shipAvaiByWareHouse.append(stockKey)
-        if (len(list(filter(None, v))) < 5 and len(list(filter(None, v)))) > 0:  # adds to shipWarehouseOption if partial order at warehouse
+        if (len(list(filter(None, v))) < len(invoice) and
+                len(list(filter(None, v)))) > 0:  # adds to shipWarehouseOption if partial order at warehouse
             warehouseOptions.append(stockKey)
     shipSize = '%5.2f' % (max(L) * max(W) * sum(H))
     return shipAvaiByWareHouse, shipWeight, float(shipSize)
-
-shipByWareHouse, shipWeightTot, shipSizeTot = getShipAvail(invoice4)
 
 #calculates shipfactor for each warehouse
 def ShipFactor(wareHouseShipCostFactor, shipByWareHouse, shipWeightTot,
@@ -124,19 +131,30 @@ def ShipFactor(wareHouseShipCostFactor, shipByWareHouse, shipWeightTot,
     return whShipRates, lowestShipCosttest
 
 def printInvoiceDetails(invoice):
-    invoiceDetails = {}
+    print('Invoice Details:')
     for key, value in book.items():
         if key in invoice:
-            invoiceDetails[key] = value
-    return invoiceDetails
-details = printInvoiceDetails(invoice4)
-print('Details: ', details)
+            print(book[str(key)]['title'], ' by ', book[str(key)]['author'] ,
+                  ' $',book[str(key)]['price'])
+    return print('total price $', '%5.2f' % totalCost(invoice), '\n')
 
-#save shipfactor as local var
+def orderDetails(invoice):
+    details = {}
+    for key, value in book.items():
+        if key in invoice:
+            details[key] = value
+    return details
 
-
-ShipCostF, lowestCostWarehouse = ShipFactor(wareHouseShipCostFactor,
+def amazonOrder(invoice):
+    shipByWareHouse, shipWeightTot, shipSizeTot = getShipAvail(invoice)
+    totalCost(invoice)
+    ShipCostF, lowestCostWarehouse = ShipFactor(wareHouseShipCostFactor,
                                     shipByWareHouse, shipWeightTot, shipSizeTot)
+    print('Warehouse with lowest shipping cost: ', lowestCostWarehouse, '\n')
+    print('All warehouse options for shipping single source order: ',
+          ShipCostF, '\n')
+    printInvoiceDetails(invoice)
+    details = orderDetails(invoice)
+    print('n', details)
 
-print('Warehouse with lowest shipping cost: ', lowestCostWarehouse )
-print('All warehouse options for shipping single source order: ', ShipCostF)
+amazonOrder(invoice1)

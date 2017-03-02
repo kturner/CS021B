@@ -50,6 +50,8 @@ invoice4 = {'1491946008': 2, '615291805': 2, '1785289721': 1,
 invoice5 = {'1785289721': 4, '615291805': 5, '1491946008': 5,
             '976982242': 6, '321967607': 4} #not enough inventory from any one warehouse
 
+L = []; W = []; H = 0.0
+
 def totalWeight(asin, itemWeight = []):
     """
     Sums the weight of all the books in the order
@@ -100,105 +102,107 @@ def getShipAvail(invoice):
      :param invoice: Customer invoice consisting of an ASIN number and quantity
      :return:
     """
-    instockWarehouse = {}; insufficientStock = {}
-    outOfStock = {}; warehouseOptions = {}; shipAvailOptions = {}
+    instockWarehouse = {}; warehouseOptions = {}; shipAvailOptions = {}
     shipAvaiByWareHouse = [];
     tempInvoice = invoice
-    L = []; W = []; H = []
     for asin in invoice.keys():
-        shipWeight = totalWeight(asin)
-        L.append(book[asin]['length'])
-        W.append(book[asin]['width'])
-        H.append(book[asin]['height'])
         if str(asin) in book.keys():
             if invoice.get(asin) <= book[str(asin)]['whWest']:
                 instockWarehouse.setdefault('whWest', [])
                 instockWarehouse['whWest'].append(str(asin))
-            elif invoice[asin] > book[str(asin)]['whWest']:
-                insufficientStock.setdefault('whWest', [])
-                insufficientStock['whWest'].append(str(asin))
-            elif book[str(asin)]['whWest'] == 0:
-                outOfStock.setdefault('whWest', [])
-                outOfStock['whWest'].append(str(asin))
-
             if invoice[asin] <= book[str(asin)]['whNorth']: #if wh has enough to fulfill book order
                 instockWarehouse.setdefault('whNorth', [])
                 instockWarehouse['whNorth'].append(str(asin))
-            elif invoice[asin] > book[str(asin)]['whNorth']:
-                insufficientStock.setdefault('whNorth', []) #this warehouse is low on stock on book
-                insufficientStock['whNorth'].append(str(asin))
-            elif book[str(asin)]['whNorth'] == 0:
-                outOfStock.setdefault('whNorth', []) #this warehouse is out of stock on book
-                outOfStock['whNorth'].append(str(asin))
-
             if invoice[asin] <= book[str(asin)]['whSouth']:
                 instockWarehouse.setdefault('whSouth', [])
                 instockWarehouse['whSouth'].append(str(asin))
-            elif invoice[asin] > book[str(asin)]['whSouth']:
-                insufficientStock.setdefault('whSouth', [])
-                insufficientStock['whSouth'].append(str(asin))
-            elif book[str(asin)]['whSouth'] == 0:
-                outOfStock.setdefault('whSouth', [])
-                outOfStock['whSouth'].append(str(asin))
-
             if invoice[asin] <= book[str(asin)]['whEast']:
                 instockWarehouse.setdefault('whEast', [])
                 instockWarehouse['whEast'].append(str(asin))
-            elif invoice[asin] > book[str(asin)]['whEast']:
-                insufficientStock.setdefault('whEast', [])
-                insufficientStock['whEast'].append(str(asin))
-            elif book[str(asin)]['whEast'] == 0:
-                outOfStock.setdefault('whEast', [])
-                outOfStock['whEast'].append(str(asin))
         else:
             print('book not found')
-    #print('insufficientStock', insufficientStock)
+            return None
     #print('inStock', instockWarehouse)
-    #print('outOfStock', outOfStock)
-    i = 0
-    for k, v in instockWarehouse.items():
+    print(instockWarehouse)
+    L = []; W = []; H = 0.0
+    for k, v in instockWarehouse.items(): #iterates on k which is warehouse
         # adds warehouse to shipAvaiByWareHouse if full order avail from warehouse
-        if (len(list(filter(None, v)))) == len(invoice):
+        if (len(list(filter(None, v)))) == len(invoice):#filter(function, iterator)
             shipAvaiByWareHouse.append(str(k))
+            shipWeight = totalWeight(asin)
+            L.append([book[asin]['length']])
+            W.append([book[asin]['width']])
+            H += (book[asin]['height'])
+            if L != [] or W != [] or H != 0.0:
+                maxL = max(L)[0]; maxW = max(W)[0]
+                shipSize = '%5.2f' % (maxL * maxW * H)
+            return shipAvaiByWareHouse, shipAvailOptions, shipWeight, float(shipSize)
         elif shipAvaiByWareHouse == []:
             warehouseOptions[k] = v
     if warehouseOptions != {}:
         if 'whWest' in warehouseOptions:
-            for value in warehouseOptions['whWest']:
-                if value in tempInvoice:
-                    shipAvailOptions.setdefault('whWest', [])
-                    shipAvailOptions['whWest'].append(str(value))
-                    del tempInvoice[value]
-        if 'whNorth' in warehouseOptions:
-            for value in warehouseOptions['whNorth']:
-                if value in tempInvoice:
-                    shipAvailOptions.setdefault('whNorth', [])
-                    shipAvailOptions['whNorth'].append(str(value))
-                    del tempInvoice[value]
-        if 'whSouth' in warehouseOptions:
-            for value in warehouseOptions['whSouth']:
-                if value in tempInvoice:
-                    shipAvailOptions.setdefault('whSouth', [])
-                    shipAvailOptions['whSouth'].append(str(value))
-                    del tempInvoice[value]
-        if 'whEast' in warehouseOptions:
-            for value in warehouseOptions['whEast']:
-                if value in tempInvoice:
-                    shipAvailOptions.setdefault('whEast', [])
-                    shipAvailOptions['whEast'].append(str(value))
-                    del tempInvoice[value]
+            L = []; W = []; H = 0.0; shipWeightWest = 0.0
+            for asin in warehouseOptions['whWest']:
+                if  asin in tempInvoice:
+                    L.append([book[asin]['length']])
+                    W.append([book[asin]['width']])
+                    H += (book[asin]['height'])
+                    shipWeightWest = totalWeight(asin)
+                    del tempInvoice[asin]
+            if L != [] or W != [] or H != 0.0:
+                maxL = max(L)[0]; maxW = max(W)[0]
+                shipSize = '%5.2f' % (maxL * maxW * H)
+                print('westSize ', shipSize, ' weightwest ', shipWeightWest)
 
+        if 'whNorth' in warehouseOptions:
+            L = []; W = []; H = 0.0; shipWeightNorth = 0.0
+            for asin in warehouseOptions['whNorth']:
+                if  asin in tempInvoice:
+                    L.append([book[asin]['length']])
+                    W.append([book[asin]['width']])
+                    H += (book[asin]['height'])
+                    shipWeightNorth = totalWeight(asin)
+                    del tempInvoice[asin]
+            if L != [] or W != [] or H != 0.0:
+                maxL = max(L)[0]; maxW = max(W)[0]
+                shipSize = '%5.2f' % (maxL * maxW * H)
+                print('northSize ', shipSize, ' weightnorth ', shipWeightNorth)
+
+        if 'whSouth' in warehouseOptions:
+                L = []; W = []; H = 0.0; shipWeightSouth = 0.0
+                for asin in warehouseOptions['whSouth']:
+                    if  asin in tempInvoice:
+                        L.append([book[asin]['length']])
+                        W.append([book[asin]['width']])
+                        H += (book[asin]['height'])
+                        shipWeightSouth = totalWeight(asin)
+                        del tempInvoice[asin]
+                if L != [] or W != [] or H != 0.0:
+                    maxL = max(L)[0]; maxW = max(W)[0]
+                    shipSize = '%5.2f' % (maxL * maxW * H)
+                    print(shipSize, ' weight ', shipWeightSouth)
+
+        if 'whEast' in warehouseOptions:
+            L = []; W = []; H = 0.0; shipWeightEast = 0.0
+            for asin in warehouseOptions['whEast']:
+                if  asin in tempInvoice:
+                    L.append([book[asin]['length']])
+                    W.append([book[asin]['width']])
+                    H += (book[asin]['height'])
+                    shipWeightEast = totalWeight(asin)
+                    del tempInvoice[asin]
+            if L != [] or W != [] or H != 0.0:
+                maxL = max(L)[0]; maxW = max(W)[0]
+                shipSize = '%5.2f' % (maxL * maxW * H)
+                print(shipSize, ' weight ', shipWeightEast)
         print('Best available shipping option from multiple sources: ', end='' )
         for key, value in shipAvailOptions.items():
             print(key, value)
-        if tempInvoice != {}:
-            for key in tempInvoice:
-                print('Out of Stock: ', book[key]['title'])
-        shipSize = '%5.2f' % (max(L) * max(W) * sum(H))
-    if shipAvaiByWareHouse != []:
-        print('shipAvaiByWareHouse', shipAvaiByWareHouse)
-    shipSize = '%5.2f' % (max(L) * max(W) * sum(H))
-    return shipAvaiByWareHouse, insufficientStock, shipAvailOptions, shipWeight, float(shipSize)
+        return shipAvaiByWareHouse, shipAvailOptions, shipWeightWest, \
+               shipWeightNorth, shipWeightSouth, shipWeightEast, float(shipSize)
+
+
+
 
 def shipFactor(wareHouseShipCostFactor, shipByWareHouse, shipWeightTot,shipSizeTot):
     """
@@ -256,22 +260,22 @@ def amazonOrder(invoice):
     :param invoice: Customer invoice consisting of an ASIN number and quantity
     :return:
     """
-    shipByWareHouse, insufficientStock, shipAvailOptions, shipWeightTot, shipSizeTot \
+    shipByWareHouse, shipAvailOptions, shipWeight, shipSize \
         = getShipAvail(invoice)
     totalCost(invoice)
     if shipByWareHouse != []:
         ShipCostF, lowestCostWarehouse = shipFactor(wareHouseShipCostFactor,
-                                        shipByWareHouse, shipWeightTot, shipSizeTot)
+                                        shipByWareHouse, shipWeight, shipSize)
         print('Warehouse with lowest shipping cost: ', lowestCostWarehouse, '\n')
         print('All warehouse options for shipping single source order: ',
               ShipCostF, '\n')
-    elif shipByWareHouse == [] and shipAvailOptions != {}:
-        print('shipAvailOptions', shipAvailOptions)
-    #elif outOfStock != {}:
-        #print('Out of Stock', outOfStock)
+    #elif shipByWareHouse == [] and shipAvailOptions != {}:
+        #print('shipAvailOptions', shipAvailOptions)
         #print('insufficientStock', insufficientStock)
     #printInvoiceDetails(invoice)
     details = orderDetails(invoice)
     #print('full invoice details ', details)
 
-amazonOrder(invoice1)
+amazonOrder(invoice3)
+
+#getShipAvail(invoice3)
